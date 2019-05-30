@@ -1,19 +1,18 @@
 const uuidv4 = require('uuid/v4');
 const vscode = require('vscode');
 
-const helpers = require('./helpers');
-
 const pythonTerminalName = 'Docker-IPython';
 let pythonTerminal = null;
 let textQueue = [];
 let waitsQueue = [];
 let currentFilename = null;
+let uuid = null;
 
 function createPythonTerminal() {
     textQueue = [];
     waitsQueue = [];
     pythonTerminal = vscode.window.createTerminal(pythonTerminalName);
-    var uuid = uuidv4();
+    uuid = 'docker-ipython-' + uuidv4().substring(0,8);
     sendQueuedText(`docker build . -t ${uuid}`, 1500);
     sendQueuedText(`docker run -v \${HOME}/.aws:/root/.aws:ro -v \${PWD}:/docker-ipython -w /docker-ipython -e DIP_PWD=\${PWD} -it ${uuid} /bin/bash`, 1500);
     sendQueuedText('pip install ipython', 1500);
@@ -27,6 +26,9 @@ function removePythonTerminal() {
     currentFilename = null;
     textQueue = [];
     waitsQueue = [];
+    var terminal = vscode.window.createTerminal(pythonTerminalName + '-close');
+    terminal.sendText(`docker rm $(docker stop $(docker ps -a -q --filter ancestor=${uuid} --format="{{.ID}}"))`);
+    terminal.dispose();
 }
 
 function sendQueuedText(text, waitTime = 50) {
@@ -54,7 +56,7 @@ function updateFilename(filename) {
 
 function activate(context) {
     vscode.window.onDidCloseTerminal(function (event) {
-        if (event._name === pythonTerminalName) {
+        if (event.name === pythonTerminalName) {
             removePythonTerminal();
         }
     });
