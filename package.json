@@ -3,7 +3,7 @@
 	"displayName": "Docker-IPython",
 	"repository": "https://github.com/haranjackson/vscode-docker-ipython",
 	"description": "Develop interactively with an IPython terminal, running from a locally-defined docker image",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"publisher": "haranjackson",
 	"engines": {
 		"vscode": "^1.5.0"
